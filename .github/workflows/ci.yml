@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  build:
+    name: 'build / sign'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build
+      id: web-ext-build
+      uses: kewisch/action-web-ext@v1
+      with:
+        cmd: build
+        source: src
+        
+    - name: zip rickrollnt-chrome.zip
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r -j -D rickrollnt-chrome.zip src/
+
+    - name: zip rickrollnt-firefox.zip
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r -j -D rickrollnt-firefox.zip src/
+
+    - name: zip rickrollnt-opera.zip
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r -j -D rickrollnt-opera.zip src/
+
+    - name: create builds folder
+      run: |
+            mkdir builds
+
+    - name: copy rickrollnt-chrome.zip
+      uses: canastro/copy-file-action@master
+      with:
+        source: "rickrollnt-chrome.zip"
+        target: "builds/rickrollnt-chrome.zip"
+
+    - name: copy rickrollnt-firefox.zip
+      uses: canastro/copy-file-action@master
+      with:
+        source: "rickrollnt-firefox.zip"
+        target: "builds/rickrollnt-firefox.zip"
+        
+    - name: copy rickrollnt-opera.zip
+      uses: canastro/copy-file-action@master
+      with:
+        source: "rickrollnt-opera.zip"
+        target: "builds/rickrollnt-opera.zip"
+
+    - name: build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: rickrollnt-build
+        path: ${{ github.workspace }}/builds
